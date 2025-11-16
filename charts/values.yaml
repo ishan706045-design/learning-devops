@@ -3,8 +3,8 @@ replicaCount: 2
 image:
   repository: "asia-south1-docker.pkg.dev/learning-cloud-472014/docker/express-api"
   tag: "v1.0.0"
-  pullPolicy: IfNotPresent
-  imagePullSecret: ""   # not needed
+  pullPolicy: Always
+  imagePullSecret: regcred
 
 service:
   type: NodePort
