@@ -4,13 +4,13 @@ image:
   repository: "asia-south1-docker.pkg.dev/learning-cloud-472014/docker/express-api"
   tag: "v1.0.0"
   pullPolicy: IfNotPresent
-  imagePullSecret: ""   # not needed because VM has artifactregistry.reader role
+  imagePullSecret: ""   # not needed
 
 service:
   type: NodePort
   port: 80
-  targetPort: 3000
-  nodePort: 30080
+  targetPort: 8080
+  nodePort: 30086
 
 ingress:
   enabled: false
@@ -25,8 +25,8 @@ resources:
 
 readinessProbe:
   httpGet:
-    path: /healthz
-    port: 3000
+    path: /health
+    port: 8080
   initialDelaySeconds: 5
   periodSeconds: 10
   failureThreshold: 3
@@ -34,13 +34,13 @@ readinessProbe:
 livenessProbe:
   httpGet:
     path: /healthz
-    port: 3000
+    port: 8080
   initialDelaySeconds: 15
   periodSeconds: 20
 
 env:
   - name: PORT
-    value: "3000"
+    value: "8080"
   - name: JWT_SECRET
     valueFrom:
       secretKeyRef:
@@ -59,4 +59,4 @@ hpa:
   maxReplicas: 10
   targetCPUUtilizationPercentage: 50
 
-namespace: default
+namespace: learning
