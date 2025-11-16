@@ -1,0 +1,62 @@
+replicaCount: 2
+
+image:
+  repository: "asia-south1-docker.pkg.dev/learning-cloud-472014/docker/express-api"
+  tag: "v1.0.0"
+  pullPolicy: IfNotPresent
+  imagePullSecret: ""   # not needed
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 8080
+  nodePort: 30080
+
+ingress:
+  enabled: false
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  failureThreshold: 3
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 15
+  periodSeconds: 20
+
+env:
+  - name: PORT
+    value: "8080"
+  - name: JWT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: my-express-secret
+        key: JWT_SECRET
+
+secrets:
+  create: true
+  name: my-express-secret
+  data:
+    JWT_SECRET: "mySuperSecretKey123"
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50
+
+namespace: default
