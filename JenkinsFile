@@ -37,6 +37,14 @@ pipeline {
             }
         }
 
+        stage('Debug Workspace') {
+            steps {
+            sh "pwd"
+            sh "ls -R ."
+           }
+        }
+
+
         stage('Deploy using Helm') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
