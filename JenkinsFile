@@ -51,6 +51,7 @@ pipeline {
                     sh """
                     export KUBECONFIG=$KUBECONFIG
                     helm upgrade --install myapp ./charts \
+                      --namespace learning \
                       --set image.repository=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE} \
                       --set image.tag=${TAG}
                     """
