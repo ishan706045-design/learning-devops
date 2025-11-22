@@ -16,6 +16,9 @@ app.get("/",(req,res)=>{
 app.get("/health",(req,res)=>{
     res.status(200).json({success:true,message:"app health was good"})
 })
+app.get("/github",(req,res)=>{
+    res.status(200).json({success:true,message:"github"})
+})
 
 app.get('/country/:name', async (req, res, next) => {
   try {
