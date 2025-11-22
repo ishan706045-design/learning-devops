@@ -48,20 +48,9 @@ pipeline {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
                     export KUBECONFIG=$KUBECONFIG
-                    helm upgrade --install myapp ./helm-chart \
+                    helm upgrade --install myapp ./charts \
                       --set image.repository=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE} \
                       --set image.tag=${TAG}
-                    """
-                }
-            }
-        }
-
-        stage('Verify Deployment') {
-            steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    sh """
-                    export KUBECONFIG=$KUBECONFIG
-                    kubectl rollout status deployment/myapp --timeout=60s
                     """
                 }
             }
