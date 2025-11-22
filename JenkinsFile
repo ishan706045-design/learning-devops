@@ -1,0 +1,70 @@
+pipeline {
+    agent any
+
+    environment {
+        PROJECT_ID = "synthetic-diode-478517-e0"
+        REGION = "asia-south1"
+        REPO = "krishna"
+        IMAGE = "myapp"
+        TAG = "${env.GIT_COMMIT.take(7)}"
+        IMAGE_URL = "${env.REGION}-docker.pkg.dev/${env.PROJECT_ID}/${env.REPO}/${env.IMAGE}:${env.TAG}"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/ishan706045-design/learning-devops'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh """
+                echo "Building image: ${IMAGE_URL}"
+                docker build -t ${IMAGE_URL} .
+                """
+            }
+        }
+
+        stage('Login to Google Artifact Registry') {
+            steps {
+                withCredentials([file(credentialsId: 'gcp-json', variable: 'GCP_KEY')]) {
+                    sh """
+                    cat $GCP_KEY | docker login -u _json_key --password-stdin https://${REGION}-docker.pkg.dev
+                    """
+                }
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                sh "docker push ${IMAGE_URL}"
+            }
+        }
+
+        stage('Deploy using Helm') {
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                    sh """
+                    export KUBECONFIG=$KUBECONFIG
+                    helm upgrade --install myapp ./helm-chart \
+                      --set image.repository=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE} \
+                      --set image.tag=${TAG}
+                    """
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                    sh """
+                    export KUBECONFIG=$KUBECONFIG
+                    kubectl rollout status deployment/myapp --timeout=60s
+                    """
+                }
+            }
+        }
+    }
+}
