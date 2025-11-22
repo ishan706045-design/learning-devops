@@ -5,9 +5,11 @@ require('dotenv').config()
 
 const port = process.env.PORT ?? 3000;
 
+const env = process.env;
+
 
 app.get("/",(req,res)=>{
-    res.status(200).json({success:true,message:"app is working fine"})
+    res.status(200).json({success:true,message:"app is working fine",data:env})
 })
 
 
