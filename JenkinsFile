@@ -45,20 +45,16 @@ pipeline {
         }
 
         stage('Deploy using Helm') {
-            steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    sh """
-                    export KUBECONFIG=$KUBECONFIG
+    steps {
+        sh '''
+        helm upgrade --install myapp ./charts \
+          --namespace learning \
+          --create-namespace \
+          --set image.repository=asia-south1-docker.pkg.dev/synthetic-diode-478517-e0/krishna/myapp \
+          --set image.tag=${TAG}
+        '''
+    }
+}
 
-                    helm upgrade --install myapp ./charts \
-                      --namespace ${K8S_NAMESPACE} \
-                      --create-namespace \
-                      --set namespace=${K8S_NAMESPACE} \
-                      --set image.repository=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE} \
-                      --set image.tag=${TAG}
-                    """
-                }
-            }
-        }
     }
 }
