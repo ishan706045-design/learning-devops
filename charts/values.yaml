@@ -1,8 +1,8 @@
 replicaCount: 2
 
 image:
-  repository: "asia-south1-docker.pkg.dev/learning-cloud-472014/docker/express-api"
-  tag: "v1.0.0"
+  repository: "asia-south1-docker.pkg.dev/synthetic-diode-478517-e0/krishna/myapp"
+  tag: "1da0996"
   pullPolicy: Always
   imagePullSecret: regcred
 

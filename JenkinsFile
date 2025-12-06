@@ -8,9 +8,16 @@ pipeline {
         IMAGE = "myapp"
         TAG = "${env.GIT_COMMIT.take(7)}"
         IMAGE_URL = "${env.REGION}-docker.pkg.dev/${env.PROJECT_ID}/${env.REPO}/${env.IMAGE}:${env.TAG}"
+        K8S_NAMESPACE = "learning"
     }
 
     stages {
+
+        stage('Checkout Code') {
+            steps {
+                sh "echo Checking out code..."
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
@@ -37,21 +44,16 @@ pipeline {
             }
         }
 
-        stage('Debug Workspace') {
-            steps {
-            sh "pwd"
-            sh "ls -R ."
-           }
-        }
-
-
         stage('Deploy using Helm') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
                     sh """
                     export KUBECONFIG=$KUBECONFIG
+
                     helm upgrade --install myapp ./charts \
-                      --namespace learning \
+                      --namespace ${K8S_NAMESPACE} \
+                      --create-namespace \
+                      --set namespace=${K8S_NAMESPACE} \
                       --set image.repository=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE} \
                       --set image.tag=${TAG}
                     """
