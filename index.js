@@ -21,7 +21,7 @@ app.get("/jenkins",(req,res)=>{
 })
 
 app.get("/jenkin3",(req,res)=>{
-    res.status(200).json({success:true,message:"jenkins3"})
+    res.status(200).json({success:true,message:"jenkins3j"})
 })
 
 app.get('/country/:name', async (req, res, next) => {
