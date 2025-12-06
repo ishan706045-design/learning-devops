@@ -15,7 +15,7 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                sh "echo Checking out code..."
+                echo "Checking out code..."
             }
         }
 
@@ -45,16 +45,50 @@ pipeline {
         }
 
         stage('Deploy using Helm') {
-    steps {
-        sh '''
-        helm upgrade --install myapp ./charts \
-          --namespace learning \
-          --create-namespace \
-          --set image.repository=asia-south1-docker.pkg.dev/synthetic-diode-478517-e0/krishna/myapp \
-          --set image.tag=${TAG}
-        '''
+            steps {
+                sh '''
+                helm upgrade --install myapp ./charts \
+                  --namespace learning \
+                  --create-namespace \
+                  --set image.repository=asia-south1-docker.pkg.dev/synthetic-diode-478517-e0/krishna/myapp \
+                  --set image.tag=${TAG}
+                '''
+            }
+        }
     }
-}
 
+    // ✅ EMAIL NOTIFICATION BLOCK (MAILTRAP)
+    post {
+        success {
+            emailext(
+                subject: "✅ SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                <h2 style="color:green;">Build Successful</h2>
+                <b>Project:</b> ${env.JOB_NAME}<br>
+                <b>Build Number:</b> ${env.BUILD_NUMBER}<br>
+                <b>Image:</b> ${IMAGE_URL}<br>
+                <b>Namespace:</b> ${K8S_NAMESPACE}<br>
+                <b>Status:</b> SUCCESS<br><br>
+                🔗 <a href="${env.BUILD_URL}">View Build</a>
+                """,
+                to: "demo@company.com"
+            )
+        }
+
+        failure {
+            emailext(
+                subject: "❌ FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                <h2 style="color:red;">Build Failed</h2>
+                <b>Project:</b> ${env.JOB_NAME}<br>
+                <b>Build Number:</b> ${env.BUILD_NUMBER}<br>
+                <b>Image:</b> ${IMAGE_URL}<br>
+                <b>Namespace:</b> ${K8S_NAMESPACE}<br>
+                <b>Status:</b> FAILED<br><br>
+                🔗 <a href="${env.BUILD_URL}">View Build Logs</a>
+                """,
+                to: "demo@company.com"
+            )
+        }
     }
 }
