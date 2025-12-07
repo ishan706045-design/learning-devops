@@ -47,15 +47,9 @@ env:
         name: my-express-secret
         key: JWT_SECRET
 
-secrets:
-  create: true
-  name: my-express-secret
-  data:
-    JWT_SECRET: "mySuperSecretKey123"
-
 hpa:
   enabled: true
-  minReplicas: 2
+  minReplicas: 1
   maxReplicas: 10
   targetCPUUtilizationPercentage: 50
 
