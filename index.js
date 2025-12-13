@@ -277,7 +277,7 @@ app.get("/", (req, res) => {
   `);
 });
 
-app.get("/health8",(req,res)=>{
+app.get("/health9",(req,res)=>{
     res.status(200).json({success:true,message:"app health was good"})
 })
 
