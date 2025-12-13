@@ -6,7 +6,7 @@ metadata:
     kubernetes.io/ingress.class: "gce"
 spec:
   rules:
-    - host: ""   # optional, leave empty for global IP
+    - host: ""  
       http:
         paths:
           - path: /

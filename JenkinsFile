@@ -2,27 +2,25 @@ pipeline {
     agent any
 
     environment {
-        PROJECT_ID = "synthetic-diode-478517-e0"
+        PROJECT_ID = "learning-481011"
         REGION = "asia-south1"
-        REPO = "krishna"
+        REPO = "learning"
         IMAGE = "myapp"
         TAG = "${env.GIT_COMMIT.take(7)}"
         IMAGE_URL = "${env.REGION}-docker.pkg.dev/${env.PROJECT_ID}/${env.REPO}/${env.IMAGE}:${env.TAG}"
-        K8S_NAMESPACE = "learning"
     }
 
     stages {
 
         stage('Checkout Code') {
             steps {
-                echo "Checking out code..."
+                checkout scm
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 sh """
-                echo "Building image: ${IMAGE_URL}"
                 docker build -t ${IMAGE_URL} .
                 """
             }
@@ -43,52 +41,39 @@ pipeline {
                 sh "docker push ${IMAGE_URL}"
             }
         }
-
-        stage('Deploy using Helm') {
+        
+        stage('Deploy to STAGING') {
+            when {
+                branch 'dev'
+            }
             steps {
-                sh '''
+                sh """
                 helm upgrade --install myapp ./charts \
-                  --namespace learning \
+                  --namespace staging \
                   --create-namespace \
-                  --set image.repository=asia-south1-docker.pkg.dev/synthetic-diode-478517-e0/krishna/myapp \
+                  -f charts/values-staging.yaml \
+                  --set image.repository=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE} \
                   --set image.tag=${TAG}
-                '''
+                """
             }
         }
-    }
 
-    // ✅ EMAIL NOTIFICATION BLOCK (MAILTRAP)
-    post {
-        success {
-            emailext(
-                subject: "✅ SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """
-                <h2 style="color:green;">Build Successful</h2>
-                <b>Project:</b> ${env.JOB_NAME}<br>
-                <b>Build Number:</b> ${env.BUILD_NUMBER}<br>
-                <b>Image:</b> ${IMAGE_URL}<br>
-                <b>Namespace:</b> ${K8S_NAMESPACE}<br>
-                <b>Status:</b> SUCCESS<br><br>
-                🔗 <a href="${env.BUILD_URL}">View Build</a>
-                """,
-                to: "demo@company.com"
-            )
-        }
-
-        failure {
-            emailext(
-                subject: "❌ FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """
-                <h2 style="color:red;">Build Failed</h2>
-                <b>Project:</b> ${env.JOB_NAME}<br>
-                <b>Build Number:</b> ${env.BUILD_NUMBER}<br>
-                <b>Image:</b> ${IMAGE_URL}<br>
-                <b>Namespace:</b> ${K8S_NAMESPACE}<br>
-                <b>Status:</b> FAILED<br><br>
-                🔗 <a href="${env.BUILD_URL}">View Build Logs</a>
-                """,
-                to: "demo@company.com"
-            )
+        /* ================= PRODUCTION ================= */
+        stage('Deploy to PRODUCTION') {
+            when {
+                branch 'main'
+            }
+            steps {
+                input message: "Approve PRODUCTION deployment?"
+                sh """
+                helm upgrade --install myapp ./charts \
+                  --namespace production \
+                  --create-namespace \
+                  -f charts/values-production.yaml \
+                  --set image.repository=${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${IMAGE} \
+                  --set image.tag=${TAG}
+                """
+            }
         }
     }
 }

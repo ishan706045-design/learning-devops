@@ -1,10 +1,10 @@
-replicaCount: 2
+replicaCount: 1
 
 image:
-  repository: "asia-south1-docker.pkg.dev/synthetic-diode-478517-e0/krishna/myapp"
-  tag: "1da0996"
+  repository: "asia-south1-docker.pkg.dev/learning-481011/learning/myapp"
   pullPolicy: Always
   imagePullSecret: regcred
+  tag: ""   # overwritten by CI
 
 service:
   type: ClusterIP
@@ -12,7 +12,8 @@ service:
   targetPort: 8080
 
 ingress:
-  enabled: false
+  enabled: true
+  host: ""   # staging has no domain now
 
 resources:
   limits:
@@ -43,13 +44,11 @@ env:
   - name: JWT_SECRET
     valueFrom:
       secretKeyRef:
-        name: my-express-secret
+        name: stag-pod-env-secret
         key: JWT_SECRET
 
 hpa:
   enabled: true
   minReplicas: 1
-  maxReplicas: 2
+  maxReplicas: 1
   targetCPUUtilizationPercentage: 90
-
-namespace: learning
