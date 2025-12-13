@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: "asia-south1-docker.pkg.dev/learning-481011/learning/myapp"
   pullPolicy: Always
-  imagePullSecret: regcred
+  # imagePullSecret: regcred
   tag: ""   # overwritten by CI
 
 service:
